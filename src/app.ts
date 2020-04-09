@@ -1,31 +1,38 @@
 import express, { Request, Response } from 'express';
+import passport from 'passport';
+import session from 'express-session';
 import cors from 'cors';
 import routes from './routes';
-import connectDb from './models';
 
 const app = express();
 
-connectDb()
-  .then((result: any) => {
-    console.log('connected to mongodb successfully');
-  })
-  .catch((err: any) => {
-    console.log('failed to connect to mongodb', err);
-  });
-
 app.use(cors());
 app.use(express.json());
-app.use(routes);
+app.use(express.urlencoded({ extended: false }));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET as string,
+    cookie: { maxAge: 60000 },
+    resave: false,
+    saveUninitialized: false,
+  }),
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use('/api/v1', routes);
+
 app.get(
   '/',
   (req: Request, res: Response): Response => {
     return res.status(200).send({ message: 'Welcome to Alpha Code' });
   },
 );
-app.use(
-  (req: Request, res: Response): Response => {
-    return res.status(404).send({ message: 'Route not found' });
-  },
-);
+
+const NotFoundHandler = (req: Request, res: Response): Response => {
+  return res.status(404).send({ message: 'Route not found' });
+};
+
+app.use(NotFoundHandler);
 
 export default app;

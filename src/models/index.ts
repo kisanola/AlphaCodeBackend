@@ -1,20 +1,42 @@
 import mongoose from 'mongoose';
 import 'dotenv/config';
 
-const { DATABASE_URL, DATABASE_URL_TEST, NODE_ENV } = process.env;
-const URL: string = NODE_ENV === 'test' ? DATABASE_URL_TEST! : DATABASE_URL!;
+const {
+  NODE_ENV = 'development',
+  DATABASE_URL,
+  DATABASE_URL_TEST,
+} = process.env;
 
-const connectDb = () => {
+interface DBInterface {
+  test?: string;
+  production?: string;
+  development?: string;
+}
+
+const dbURLS: DBInterface = {
+  test: DATABASE_URL_TEST,
+  production: DATABASE_URL,
+  development: DATABASE_URL,
+};
+
+const URL: string = dbURLS[NODE_ENV] as string;
+
+const connect = async (): Promise<any> => {
   try {
-    return mongoose.connect(URL, {
+    await mongoose.connect(URL as string, {
       useNewUrlParser: true,
       useCreateIndex: true,
       useFindAndModify: false,
+      useUnifiedTopology: true,
     });
   } catch (error) {
     console.error(error);
-    return error;
   }
 };
 
-export default connectDb;
+export const dbConnection = mongoose;
+
+export default {
+  connect,
+  disconnect: mongoose.disconnect,
+};
