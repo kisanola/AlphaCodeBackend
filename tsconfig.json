@@ -11,7 +11,8 @@
     "noImplicitThis": true,
     "sourceMap": false,
     "outDir": "dist",
-    "allowJs": true
+    "allowJs": true,
+    "typeRoots" : ["./node_modules/@types", "./src/types"]
   },
   "exclude": ["node_modules", "dist"],
   "include": ["src/**/*"],
