@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Challenge from '../models/Challenge';
-import { OK, NOT_FOUND } from '../constants/status-codes';
+import { CREATED, OK, NOT_FOUND } from '../constants/status-codes';
 import { notExists, forbiddenAccess, created } from '../constants/messages';
 import jsonReponse from '../helpers/jsonResponse';
 import asyncHandler from '../middlewares/asyncHandler';
@@ -17,17 +17,18 @@ class ChallengeController {
    * @returns {Object} Returns an object
    */
   static submit = asyncHandler(
-    async (req: Request, res: Response): Promise<any> => {
+    async (req: any, res: Response): Promise<any> => {
       const { functionName, args, returnType } = req.body;
-      const challenge = Challenge.create({
+      const challenge = await Challenge.create({
         functionName,
         params: args,
         returnType: returnType,
+        user: req.currentUser._id,
       });
 
       return jsonReponse({
         res,
-        status: OK,
+        status: CREATED,
         message: created('Challenge'),
         data: challenge,
       });
