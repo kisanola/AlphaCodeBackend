@@ -15,7 +15,7 @@
     "@typescript-eslint/no-var-requires": 0,
     "@typescript-eslint/camelcase": 0,
     "import/no-unresolved": 0,
-    "function-paren-newline": ["error", "multiline"],
+    "function-paren-newline": ["error", "multiline-arguments"],
     "curly": ["error", "multi-line"],
     "valid-jsdoc": [
       "error",
