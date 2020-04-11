@@ -3,11 +3,7 @@ import passport from 'passport';
 import GithubStrategy from 'passport-github';
 import 'dotenv/config';
 
-const {
-  GITHUB_CLIENT_ID,
-  GITHUB_CLIENT_SECRET,
-  DOMAIN_NAME,
-} = process.env;
+const { GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, DOMAIN_NAME } = process.env;
 
 const credentials = {
   clientID: GITHUB_CLIENT_ID as string,

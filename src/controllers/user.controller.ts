@@ -1,6 +1,6 @@
 import User from '../models/User';
 import generateToken from '../helpers/generateToken';
-import asyncHandler from '../middleware/asyncHandler';
+import asyncHandler from '../middlewares/asyncHandler';
 
 const { FRONTEND_URL } = process.env;
 
@@ -22,7 +22,7 @@ export default class UserController {
       let foundUser: any = await User.findOne({ email });
 
       if (!foundUser) {
-        const [firstName = '', lastName = ''] = (user.displayName || '').split(/\s+/g);
+        const [firstName = '', lastName = ''] = (user.displayName || '').split(/\s+/g,);
         const password = generateToken({});
         const userData = {
           firstName,
