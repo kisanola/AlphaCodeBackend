@@ -26,6 +26,7 @@ jobs:
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+      CURRENT_BRANCH: ${{ github.ref }}
     steps:
       - name: checkout 
         uses: actions/checkout@v2
@@ -37,11 +38,14 @@ jobs:
         if: github.ref == 'refs/heads/master' && job.status == 'success'
         run: echo "::set-env name=name=ENVIRONMENT::production"
 
-      - name: unshallown repository
-        run: git fetch --all --unshallow
+      - name: Add remove unshallow clown
+        run: git fetch --unshallow origin
       
-      - name: push to heroku
-        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git $github.ref:refs/heads/master
+      - name: push to heroku production
+        if: github.ref == 'refs/heads/master' && job.status == 'success'
+        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git origin/master:refs/heads/master
+      - name: push to heroku development
+        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git $CURRENT_BRANCH:refs/heads/master
 
       #- name: Run Database Migrations
       #- run: this should be set if we have a migration script
