@@ -9,9 +9,27 @@
     "dev-start": "ts-node ./src/index.ts",
     "dev": "nodemon -e ts -w ./src -x npm run dev-start",
     "build-dev": "tsc && npm start",
-    "build": "rm -rf dist && tsc cp -r ./src/templates ./dist/templates",
-    "lint": "tsc --noEmit && eslint \"src/*/**/*.{js,ts,tsx}\" --quiet --fix",
+    "build": "rm -rf dist && tsc",
+    "lint": "tsc --noEmit && eslint 'src/*/**/*.{js,ts,tsx}' --quiet --fix",
     "migrate": "ts-jest config:migrate jest.config.js"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.json"
+      }
+    },
+    "testMatch": [
+      "**/__tests__/**/*.+(ts|tsx|js)"
+    ]
   },
   "nodemonConfig": {
     "ignore": [
