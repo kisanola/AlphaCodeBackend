@@ -67,9 +67,6 @@ export interface UserModelInt extends Model<UserDocumentInt> {
   findByEmail(email: string): Promise<Response>;
 }
 
-const UserModel: UserModelInt = mongoose.model<UserDocumentInt, UserModelInt>(
-  'User',
-  UserSchema,
-);
+const UserModel: UserModelInt = mongoose.model<UserDocumentInt, UserModelInt>('User', UserSchema);
 
 export default UserModel;

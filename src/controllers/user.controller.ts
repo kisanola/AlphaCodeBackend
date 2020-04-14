@@ -22,7 +22,7 @@ export default class UserController {
       let foundUser: any = await User.findOne({ email });
 
       if (!foundUser) {
-        const [firstName = '', lastName = ''] = (user.displayName || '').split(/\s+/g,);
+        const [firstName = '', lastName = ''] = (user.displayName || '').split(/\s+/g);
         const password = generateToken({});
         const userData = {
           firstName,
