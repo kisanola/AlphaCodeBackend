@@ -18,7 +18,6 @@ const dbURLS: DBInterface = {
 const URL: string = dbURLS[NODE_ENV] as string;
 
 const connect = async (): Promise<any> => {
-  console.log(dbURLS, '====');
   try {
     await mongoose.connect(URL as string, {
       useNewUrlParser: true,
