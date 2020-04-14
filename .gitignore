@@ -37,3 +37,4 @@ node_modules
 # ignore yarn.lock & package-lock.json
 yarn.lock
 package-lock.json
+dist

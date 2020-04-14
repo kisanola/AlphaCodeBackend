@@ -12,12 +12,7 @@ const credentials = {
   callbackURL: `${DOMAIN_NAME}/api/v1/auth/github/callback`,
 };
 
-const callbackFunction = (
-  accessToken: string,
-  refreshToken: string,
-  profile: object,
-  done: any,
-): void => {
+const callbackFunction = (accessToken: string, refreshToken: string, profile: object, done: any): void => {
   done(null, profile);
 };
 

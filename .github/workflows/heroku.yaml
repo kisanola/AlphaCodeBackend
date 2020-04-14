@@ -1,0 +1,67 @@
+name: Node.js CI
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12.x]
+        mongodb-version: [4.2]
+    env:
+      PORT: 5000
+      DATABASE_URL_TEST: ${{secrets.DATABASE_URL_TEST}}
+      DOMAIN_NAME: kisanola.dev
+      FRONTEND_URL: http://localhost:3000
+      JWT_SECRET: ${{secrets.JWT_SECRET}}
+      SESSION_SECRET: ${{secrets.SESSION_SECRET}}
+      GITHUB_CLIENT_ID: ${{secrets.GITH_CLIENT_ID}}
+      GITHUB_CLIENT_SECRET: ${{secrets.GITH_CLIENT_SECRET}}
+      NODE_ENV :  'test'
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+      
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.3.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+        mongodb-replica-set: insert-replica-set-name
+
+    - run: npm install
+    - run: npm run build --if-present
+    - run: npm test
+      env:
+        CI: true
+  deploy:
+    name: deploy to heroku
+    runs-on: ubuntu-latest
+    needs : build-and-test
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+      CURRENT_BRANCH: ${{ github.ref }}
+    steps:
+      - name: checkout 
+        uses: actions/checkout@v2
+
+      - name: setup development environment
+        run: echo "::set-env name=ENVIRONMENT::develop"
+
+      - name: setup production environment
+        if: github.ref == 'refs/heads/master' && job.status == 'success'
+        run: echo "::set-env name=ENVIRONMENT::production"
+
+      - name: Add remove unshallow clown
+        run: git fetch --unshallow origin
+      
+      - name: push to heroku production
+        if: github.ref == 'refs/heads/master' && job.status == 'success'
+        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git origin/master:refs/heads/master
+      - name: push to heroku development
+        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git $CURRENT_BRANCH:refs/heads/master

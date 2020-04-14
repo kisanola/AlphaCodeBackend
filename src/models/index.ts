@@ -1,11 +1,7 @@
 import mongoose from 'mongoose';
 import 'dotenv/config';
 
-const {
-  NODE_ENV = 'development',
-  DATABASE_URL,
-  DATABASE_URL_TEST,
-} = process.env;
+const { NODE_ENV, DATABASE_URL, DATABASE_URL_TEST } = process.env;
 
 interface DBInterface {
   test?: string;
