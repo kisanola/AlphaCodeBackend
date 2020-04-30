@@ -82,50 +82,40 @@ jobs:
     steps:
       - name: Add environment variables to .env
         run: |
-          echo PORT=5000 >> env.production
-          echo DOMAIN_NAME=kisanola.dev >> env.production
-          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> env.production
-          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> env.production
-          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> env.production
-          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> env.production
-          echo DEBUG=0 >> env.production
-          echo NODE_ENV=production >> env.production
-          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> env.production
+          echo PORT=5000 >> .env
+          echo DOMAIN_NAME=kisanola.dev >> .env
+          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> .env
+          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> .env
+          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> .env
+          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> .env
+          echo DEBUG=0 >> .env
+          echo NODE_ENV=production >> .env
+          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> .env
       - name: Set environment variables
         run: |
           echo ::set-env name=WEB_IMAGE::${{ env.WEB_IMAGE }}
           echo ::set-env name=NGINX_IMAGE::${{ env.NGINX_IMAGE }}
-      - uses: actions/checkout@master
-      - name: copy file via ssh password
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}
-          username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
-          password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
-          port: ${{ secrets.DIGITAL_OCEAN_PORT }}
-          source: "./env.production,./docker-compose-prod.yml"
-          target: "/alpha_code_backend"
-      - name: Deploy package to digitalocean
-        uses: appleboy/ssh-action@master
+      - name: Add the private SSH key to the ssh-agent
         env:
-          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
-          WEB_IMAGE:  ${{ env.WEB_IMAGE }}
-          NGINX_IMAGE: ${{ env.NGINX_IMAGE }}
-        with:
-          host: ${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}
-          username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
-          password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
-          port: ${{ secrets.DIGITAL_OCEAN_PORT }}
-          envs: GITHUB_USERNAME, GITHUB_TOKEN, WEB_IMAGE, NGINX_IMAGE
-          script: |
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          mkdir -p ~/.ssh
+          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-add - <<< "${{ secrets.PRIVATE_KEY }}"
+      - name: Build and deploy images on DigitalOcean
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+        run: |
+          scp  -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:/alpha_code_backend
+          ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
             cd /alpha_code_backend
             ls -a
-            mv env.production .env
             source .env
             export WEB_IMAGE=$WEB_IMAGE
             export NGINX_IMAGE=$NGINX_IMAGE
-            docker login docker.pkg.github.com -u bongalo -p $GITHUB_TOKEN
+            docker login docker.pkg.github.com -u espoirMur -p $GITHUB_TOKEN
             docker pull $WEB_IMAGE
             docker pull $NGINX_IMAGE
             docker-compose -f  docker-compose-prod.yml up -d
+          ENDSSH
