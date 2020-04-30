@@ -110,12 +110,14 @@ jobs:
         env:
           GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
           GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+          WEB_IMAGE:  ${{ env.WEB_IMAGE }}
+          NGINX_IMAGE: ${{ env.NGINX_IMAGE }}
         with:
           host: ${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}
           username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
           password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
           port: ${{ secrets.DIGITAL_OCEAN_PORT }}
-          envs: GITHUB_USERNAME, GITHUB_TOKEN
+          envs: GITHUB_USERNAME, GITHUB_TOKEN, WEB_IMAGE, NGINX_IMAGE
           script: |
             cd /alpha_code_backend
             source .env
