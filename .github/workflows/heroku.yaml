@@ -1,9 +1,13 @@
 name: Node.js CI
 
 on: [push]
+env:
+  WEB_IMAGE: docker.pkg.github.com/$GITHUB_REPOSITORY/web
+  NGINX_IMAGE: docker.pkg.github.com/$GITHUB_REPOSITORY/nginx
+
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,30 +42,87 @@ jobs:
     - run: npm test
       env:
         CI: true
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+      - name: Add environment variables to .env
+        run: |
+          echo PORT=5000 >> .env
+          echo DOMAIN_NAME=kisanola.dev >> .env
+          echo FRONTEND_URL=http://localhost:3000 >> .env
+          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> .env
+          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> .env
+          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> .env
+          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> .env
+          echo DEBUG=0 >> .env
+          echo NODE_ENV=production >> .env
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> .env
+      - name: Set environment variables
+        run: |
+          echo ::set-env name=WEB_IMAGE::${{ env.WEB_IMAGE }}
+          echo ::set-env name=NGINX_IMAGE::${{ env.NGINX_IMAGE }}
+      - name: Log in to GitHub Packages
+        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin docker.pkg.github.com
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull images
+        run: |
+          docker pull ${{ env.WEB_IMAGE }} || true
+          docker pull ${{ env.NGINX_IMAGE }} || true
+      - name: Build images
+        run: |
+          docker-compose build
+      - name: Push images
+        run: |
+          docker push ${{ env.WEB_IMAGE }}
+          docker push ${{ env.NGINX_IMAGE }}
   deploy:
-    name: deploy to heroku
+    name: deploy to digitalocean
     runs-on: ubuntu-latest
     needs : build-and-test
-    env:
-      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
-      CURRENT_BRANCH: ${{ github.ref }}
     steps:
-      - name: checkout 
-        uses: actions/checkout@v2
-
-      - name: setup development environment
-        run: echo "::set-env name=ENVIRONMENT::develop"
-
-      - name: setup production environment
-        if: github.ref == 'refs/heads/master' && job.status == 'success'
-        run: echo "::set-env name=ENVIRONMENT::production"
-
-      - name: Add remove unshallow clown
-        run: git fetch --unshallow origin
-      
-      - name: push to heroku production
-        if: github.ref == 'refs/heads/master' && job.status == 'success'
-        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git origin/master:refs/heads/master
-      - name: push to heroku development
-        run: git push --force https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME-$ENVIRONMENT.git $CURRENT_BRANCH:refs/heads/master
+      - name: Add environment variables to .env
+        run: |
+          echo PORT=5000 >> .env
+          echo DOMAIN_NAME=kisanola.dev >> .env
+          echo FRONTEND_URL=http://localhost:3000 >> .env
+          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> .env
+          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> .env
+          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> .env
+          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> .env
+          echo DEBUG=0 >> .env
+          echo NODE_ENV=production >> .env
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> .env
+      - uses: actions/checkout@master
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}
+          username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
+          password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
+          port: ${{ secrets.DIGITAL_OCEAN_PORT }}
+          source: ".env, docker-compose-prod.yml"
+          target: "/alpha_code_backend"
+      - name: Deploy package to digitalocean
+        uses: appleboy/ssh-action@master
+        env:
+          GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
+        with:
+          host: ${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}
+          username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
+          password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
+          port: ${{ secrets.DIGITAL_OCEAN_PORT }}
+          envs: GITHUB_USERNAME, GITHUB_TOKEN
+          script: |
+            cd /alpha_code_backend
+            source .env
+            docker login docker.pkg.github.com -u bongalo -p ${{GITHUB_TOKEN}}
+            docker pull $WEB_IMAGE
+            docker pull $NGINX_IMAGE
+            docker-compose -f  docker-compose-prod.yml up -d
