@@ -76,21 +76,21 @@ jobs:
           docker push ${{ env.WEB_IMAGE }}
           docker push ${{ env.NGINX_IMAGE }}
   deploy:
-    name: deploy to digitalocean
+    name: deploy to digital ocean
     runs-on: ubuntu-latest
     needs : build
     steps:
       - name: Add environment variables to .env
         run: |
-          echo PORT=5000 >> .env
-          echo DOMAIN_NAME=kisanola.dev >> .env
-          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> .env
-          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> .env
-          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> .env
-          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> .env
-          echo DEBUG=0 >> .env
-          echo NODE_ENV=production >> .env
-          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> .env
+          echo PORT=5000 >> env.production
+          echo DOMAIN_NAME=kisanola.dev >> env.production
+          echo JWT_SECRET=${{secrets.JWT_SECRET}} >> env.production
+          echo SESSION_SECRET=${{secrets.SESSION_SECRET}} >> env.production
+          echo GITHUB_CLIENT_ID=${{secrets.GITH_CLIENT_ID}} >> env.production
+          echo GITHUB_CLIENT_SECRET=${{secrets.GITH_CLIENT_SECRET}} >> env.production
+          echo DEBUG=0 >> env.production
+          echo NODE_ENV=production >> env.production
+          echo DATABASE_URL_PRODUCTION=${{ secrets.DATABASE_URL_PRODUCTION }} >> env.production
       - name: Set environment variables
         run: |
           echo ::set-env name=WEB_IMAGE::${{ env.WEB_IMAGE }}
@@ -103,7 +103,7 @@ jobs:
           username: ${{ secrets.DIGITAL_OCEAN_USERNAME }}
           password: ${{ secrets.DIGITAL_OCEAN_PASSWORD }}
           port: ${{ secrets.DIGITAL_OCEAN_PORT }}
-          source: ".env, docker-compose-prod.yml"
+          source: "./env.production,./docker-compose-prod.yml"
           target: "/alpha_code_backend"
       - name: Deploy package to digitalocean
         uses: appleboy/ssh-action@master
@@ -120,7 +120,11 @@ jobs:
           envs: GITHUB_USERNAME, GITHUB_TOKEN, WEB_IMAGE, NGINX_IMAGE
           script: |
             cd /alpha_code_backend
+            ls -a
+            mv env.production .env
             source .env
+            export WEB_IMAGE=$WEB_IMAGE
+            export NGINX_IMAGE=$NGINX_IMAGE
             docker login docker.pkg.github.com -u bongalo -p $GITHUB_TOKEN
             docker pull $WEB_IMAGE
             docker pull $NGINX_IMAGE
