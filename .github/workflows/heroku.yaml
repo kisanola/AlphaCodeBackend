@@ -111,8 +111,9 @@ jobs:
           WEB_IMAGE:  ${{ env.WEB_IMAGE }}
           NGINX_IMAGE: ${{ env.NGINX_IMAGE }}
         run: |
-          scp  -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:/alpha_code_backend
-          ssh -o StrictHostKeyChecking=no root@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
+          ls -a
+          scp  -o StrictHostKeyChecking=no -r ./.env ./docker-compose-prod.yml ${{secrets.DIGITAL_OCEAN_USERNAME}}@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }}:/alpha_code_backend
+          ssh -o StrictHostKeyChecking=no ${{secrets.DIGITAL_OCEAN_USERNAME}}@${{ secrets.DIGITAL_OCEAN_IP_ADDRESS }} << 'ENDSSH'
             cd /alpha_code_backend
             ls -a
             source .env
