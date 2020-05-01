@@ -22,7 +22,7 @@ services:
         - "${NGINX_IMAGE}"
     image: "${NGINX_IMAGE}"
     ports:
-      - 80:80
+      - 82:80
     depends_on:
       - web
   db:
