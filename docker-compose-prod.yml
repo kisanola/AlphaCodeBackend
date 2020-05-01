@@ -15,8 +15,6 @@ services:
     env_file: .env
     environment:
       - NODE_ENV=production
-    volumes:
-      - '.:/app'
   nginx:
     build:
       context: .
@@ -40,4 +38,3 @@ services:
       - '27017:27017'
 volumes:
   dbdata:
-  node_modules: 
