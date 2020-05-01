@@ -25,16 +25,3 @@ services:
       - 82:80
     depends_on:
       - web
-  db:
-    image: mongo:4.1.8-xenial
-    container_name: db
-    restart: unless-stopped
-    env_file: .env
-    environment:
-      - NODE_ENV=production
-    volumes:     
-      - dbdata:/data/db
-    ports:
-      - '27017:27017'
-volumes:
-  dbdata:
