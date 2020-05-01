@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: Dockerfile
+      cache_from:
+        - "${WEB_IMAGE}"
+    image: "${WEB_IMAGE}"
+    ports:
+      - '3000:3000'
+      - '5000:5000'
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+  nginx:
+    build:
+      context: .
+      cache_from:
+        - "${NGINX_IMAGE}"
+    image: "${NGINX_IMAGE}"
+    ports:
+      - 82:80
+    depends_on:
+      - web
