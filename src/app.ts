@@ -4,6 +4,8 @@ import session from 'express-session';
 import cors from 'cors';
 import routes from './routes';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const app = express();
 
 app.use(cors());
@@ -34,5 +36,21 @@ const NotFoundHandler = (req: Request, res: Response): Response => {
 };
 
 app.use(NotFoundHandler);
+
+app.use((err: any, req: Request, res: Response) => {
+  if (!isProduction) {
+    console.log(err.stack);
+  }
+
+  const message = err.message;
+  const status = err.status || 500;
+
+  res.status(status);
+
+  return res.json({
+    status,
+    message,
+  });
+});
 
 export default app;
