@@ -5,12 +5,12 @@ import { UNAUTHORIZED } from '../constants/status-codes';
 import jsonResponse from '../helpers/jsonResponse';
 import User from '../models/User';
 
-const { JWT_SECRET } = process.env;
+const { JWT_SECRET = '' } = process.env;
 
 const checkAuth = async (req: any, res: Response, next: NextFunction): Promise<any> => {
   const { authorization = '' } = req.headers;
-  const token = authorization.slice(4);
-  if (!token) {
+
+  if (!authorization) {
     return jsonResponse({
       res,
       status: UNAUTHORIZED,
@@ -19,7 +19,7 @@ const checkAuth = async (req: any, res: Response, next: NextFunction): Promise<a
   }
 
   jwt.verify(
-    token,
+    authorization,
     JWT_SECRET,
     async (err: any, decoded: any): Promise<any> => {
       if (err || !decoded) {
