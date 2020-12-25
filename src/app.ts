@@ -3,6 +3,7 @@ import passport from 'passport';
 import session from 'express-session';
 import cors from 'cors';
 import routes from './routes';
+import joiErrors from './middlewares/joiErrors';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -23,6 +24,8 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 app.use('/api/v1', routes);
+
+app.use(joiErrors());
 
 app.get(
   '/',

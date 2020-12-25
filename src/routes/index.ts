@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import auth from './auth';
-import challenge from './challenge';
+import auth from './auth/auth.routes';
+import challenge from './challenges/challenges.routes';
 
 const router = Router();
 router.use('/auth', auth);

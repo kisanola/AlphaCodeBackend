@@ -1,11 +1,11 @@
-const request = require('supertest');
-import app from '../app';
+import request from 'supertest';
 
+import app from '../app';
 import db from '../models';
 import User from '../models/User';
 import Challenge from '../models/Challenge';
 import generateToken from '../helpers/generateToken';
-import { CREATED } from '../constants/status-codes';
+import { CREATED, BAD_REQUEST } from '../constants/status-codes';
 
 const challengeBaseURL = '/api/v1/challenges';
 const userData = {
@@ -24,26 +24,46 @@ describe('Challenge', () => {
     token = generateToken({ _id: user._id, email: user.email });
   });
 
-  it('should submit a challenge', async done => {
+  it('should return bad request', async () => {
     const challenge = {
-      functionName: 'getMaxValue',
-      args: ['value1', 'value2', 'value3'],
-      returnType: 'Number',
+      params: [
+        { type: 'integer', name: 'value1' },
+        { type: 'integer', name: 'value2' },
+      ],
+      returnType: 'integer',
     };
-    const { body } = await request(app)
-      .post(`${challengeBaseURL}/submit`)
+    const res = await request(app)
+      .post(`${challengeBaseURL}`)
       .set('authorization', `${token}`)
       .send(challenge);
-    expect(body.status).toEqual(CREATED);
-    const { data } = body;
-    expect(data.params).toEqual(challenge.args);
+
+    const { body } = res;
+
+    expect(body.status).toEqual(BAD_REQUEST);
+  });
+
+  it('should return a new challenge', async () => {
+    const challenge = {
+      functionName: 'getMaxValue',
+      params: [
+        { type: 'integer', name: 'value1' },
+        { type: 'integer', name: 'value2' },
+      ],
+      returnType: 'integer',
+    };
+    const res = await request(app)
+      .post(`${challengeBaseURL}`)
+      .set('authorization', `${token}`)
+      .send(challenge);
+    expect(res.body.status).toEqual(CREATED);
+    const { data } = res.body;
+    expect(data.params).toEqual(challenge.params);
     expect(data.functionName).toEqual(challenge.functionName);
     expect(data.returnType).toEqual(challenge.returnType);
-    done();
   });
 
   afterAll(async () => {
-    await User.remove({ email: userData.email });
+    await User.deleteOne({ email: userData.email });
     await Challenge.deleteMany({});
     await db.disconnect();
   });
