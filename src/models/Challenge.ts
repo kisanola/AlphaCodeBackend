@@ -12,9 +12,6 @@ interface ChallengeI extends Document {
   params: string[];
   returnType: string;
   user: string;
-  lastName?: string;
-  avatar?: string;
-  verified: boolean;
   status: string;
   createdAt: Date;
   updatedAt: Date;

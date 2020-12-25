@@ -16,12 +16,12 @@ class ChallengeController {
    * @param {object} res
    * @returns {Object} Returns an object
    */
-  static submit = asyncHandler(
+  static createOne = asyncHandler(
     async (req: any, res: Response): Promise<any> => {
-      const { functionName, args, returnType } = req.body;
+      const { functionName, params, returnType } = req.body;
       const challenge = await Challenge.create({
         functionName,
-        params: args,
+        params,
         returnType: returnType,
         user: req.currentUser._id,
       });

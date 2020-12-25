@@ -12,7 +12,7 @@ module.exports = {
       tsConfigFile: 'tsconfig.json',
     },
   },
-  testMatch: ['**/__tests__/**/*.ts'],
+  testMatch: ['**/__tests__/**/*.test.ts'],
   preset: 'ts-jest',
   verbose: true,
   coverageThreshold: {

@@ -3,6 +3,9 @@ import passport from 'passport';
 import session from 'express-session';
 import cors from 'cors';
 import routes from './routes';
+import joiErrors from './middlewares/joiErrors';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
 
@@ -22,6 +25,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use('/api/v1', routes);
 
+app.use(joiErrors());
+
 app.get(
   '/',
   (req: Request, res: Response): Response => {
@@ -34,5 +39,21 @@ const NotFoundHandler = (req: Request, res: Response): Response => {
 };
 
 app.use(NotFoundHandler);
+
+app.use((err: any, req: Request, res: Response) => {
+  if (!isProduction) {
+    console.log(err.stack);
+  }
+
+  const message = err.message;
+  const status = err.status || 500;
+
+  res.status(status);
+
+  return res.json({
+    status,
+    message,
+  });
+});
 
 export default app;
