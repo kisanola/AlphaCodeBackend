@@ -4,6 +4,9 @@ const validTypes = ['integer', 'float', 'number', 'string'];
 
 export const createOne = celebrate({
   body: Joi.object().keys({
+    language: Joi.string()
+      .valid('javascript', 'python3')
+      .required(),
     functionName: Joi.string().required(),
     params: Joi.array()
       .items(
