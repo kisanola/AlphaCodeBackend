@@ -1,4 +1,4 @@
-import UserController from '../../controllers/user.controller';
+import UserController from '../../resources/auth/auth.controller';
 import User from '../../models/User';
 import db from '../../models';
 import { githubUser } from '../../__mocks__/users';

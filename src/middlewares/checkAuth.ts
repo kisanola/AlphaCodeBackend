@@ -10,7 +10,9 @@ const { JWT_SECRET = '' } = process.env;
 const checkAuth = async (req: any, res: Response, next: NextFunction): Promise<any> => {
   const { authorization = '' } = req.headers;
 
-  if (!authorization) {
+  const token = authorization.slice(4);
+
+  if (!token) {
     return jsonResponse({
       res,
       status: UNAUTHORIZED,
@@ -19,7 +21,7 @@ const checkAuth = async (req: any, res: Response, next: NextFunction): Promise<a
   }
 
   jwt.verify(
-    authorization,
+    token,
     JWT_SECRET,
     async (err: any, decoded: any): Promise<any> => {
       if (err || !decoded) {

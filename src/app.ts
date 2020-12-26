@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import passport from 'passport';
 import session from 'express-session';
 import cors from 'cors';
-import routes from './routes';
+import routes from './resources';
 import joiErrors from './middlewares/joiErrors';
 
 const isProduction = process.env.NODE_ENV === 'production';
