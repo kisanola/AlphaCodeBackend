@@ -13,5 +13,7 @@ export const updated = (resource: string): string => general({ resource, action:
 
 export const notExists = (resource: string): string => `${resource} doesn't exist`;
 
+export const alreadyExists = (resource: string): string => `${resource} already exists`;
+
 export const unauthorizedAccess = (): string => 'Unauthorized access';
 export const forbiddenAccess = (): string => 'Forbidden access';

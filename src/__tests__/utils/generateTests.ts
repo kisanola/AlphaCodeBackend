@@ -19,9 +19,9 @@ export const routesTest = ({ url, cases, token }: RoutesTestParams): void => {
   async.eachOfSeries(cases, async (testCase: TestCaseInterface) => {
     const { input, output, message, method } = testCase;
     test(`${message} ${JSON.stringify(input)}`, async () => {
-      let request = supertest(app);
+      let request = supertest(app) as any;
       if (token) {
-        request = request.set('authorization', `${token}`);
+        request = request.set('authorization', `JWT ${token}`);
       }
 
       const { body } = await request[method](url).send(input);

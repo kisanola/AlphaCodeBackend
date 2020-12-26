@@ -1,6 +1,7 @@
-import User from '../models/User';
-import generateToken from '../helpers/generateToken';
-import asyncHandler from '../middlewares/asyncHandler';
+import User from '../../models/User';
+import generateToken from '../../helpers/generateToken';
+import asyncHandler from '../../middlewares/asyncHandler';
+import jsonResponse from '../../helpers/jsonResponse';
 
 const { FRONTEND_URL } = process.env;
 
@@ -17,19 +18,19 @@ export default class UserController {
   static socialLogin = asyncHandler(
     async (req: any, res: any): Promise<any> => {
       const { user } = req;
-      const email = user.emails[0].value;
+      const { username } = user;
 
-      let foundUser: any = await User.findOne({ email });
+      let foundUser: any = await User.findOne({ username });
 
       if (!foundUser) {
-        const [firstName = '', lastName = ''] = (user.displayName || '').split(/\s+/g);
+        const [firstName = '', ...lastName] = (user.displayName || '').split(/\s+/g);
         const password = generateToken({});
         const userData = {
           firstName,
-          lastName,
-          email,
-          username: email,
-          picture: user.photos[0].value,
+          lastName: lastName.join(' '),
+          username,
+          email: user._json.email,
+          picture: user._json.avatar_url,
           password,
         };
         foundUser = await User.create(userData);
@@ -37,7 +38,7 @@ export default class UserController {
 
       const token = generateToken({
         _id: foundUser._id,
-        email: foundUser.email,
+        username: foundUser.username,
       });
 
       return res.redirect(`${FRONTEND_URL}?token=${token}`);
