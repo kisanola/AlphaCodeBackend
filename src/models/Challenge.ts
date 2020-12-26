@@ -1,8 +1,12 @@
 import { Schema, Model, model, Document } from 'mongoose';
-import ChallengeTestCase, { ChallengeTestCaseI } from './ChallengeTestCase';
+import { ChallengeTestCaseI } from './ChallengeTestCase';
 
 const ChallengeSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User' },
+  language: {
+    type: String,
+    default: 'javascript',
+  },
   functionName: { type: String, required: true },
   params: { type: Array, required: true },
   returnType: { type: String, required: true },
@@ -21,10 +25,11 @@ const ChallengeSchema = new Schema({
 });
 
 interface ChallengeI extends Document {
+  user: string;
+  language: 'javascript' | 'python3';
   functionName: string;
   params: Array<{ type: string; name: string }>;
   returnType: string;
-  user: string;
   status: string;
   testCases: Array<ChallengeTestCaseI>;
   createdAt: Date;
