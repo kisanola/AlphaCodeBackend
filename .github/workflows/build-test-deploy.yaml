@@ -1,6 +1,9 @@
 name: Node.js CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 env:
   WEB_IMAGE: docker.pkg.github.com/kisanola/alphacodebackend/web:latest
   NGINX_IMAGE: docker.pkg.github.com/kisanola/alphacodebackend/nginx:latest
